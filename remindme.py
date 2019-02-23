@@ -9,9 +9,10 @@ def get_users():
 
 @app.route('/users', methods=['POST'])
 def add_users():
-	username = request.form['username'].strip()
-	password = request.form['password'].strip()
-	full_names = request.form['full_names'].strip()
+	req = request.get_json()
+	username = req['username']
+	password = req['password']
+	full_names = req['full_names']
 	return jsonify({'username': username, 'password': password,
 		'full_names': full_names})
 
