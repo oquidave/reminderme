@@ -1,7 +1,8 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, Response
 
 from remindme import app, db 
 from remindme.models import User, Reminder
+from datetime import datetime
 import secrets
 import hashlib
 
@@ -41,10 +42,14 @@ def delete_users(id):
 
 @app.route('/reminders', methods=['GET'])
 def get_reminders():
-	return jsonify({'id': 1,'item': 'dr visit', 'description': 'go for checktup', 
-		'date': '23-03-2019'},
-		{'id': 2,'item': 'renew driving permit', 'description': 'renew my driving permit', 
-		'date': '23-02-2020'}) 
+	apikey = request.headers.get("apikey")
+	user = db.session.query(User).filter_by(apikey=apikey).one()
+	_reminders = user.reminders.all()
+	reminders = []
+	for reminder in _reminders:
+		reminders.append({'id': reminder.id, 'item': reminder.item, 
+			'due_date': reminder.due_date})
+	return jsonify(reminders)
 
 @app.route('/reminders/<id>', methods=['GET'])
 def get_reminder(id):
@@ -53,8 +58,18 @@ def get_reminder(id):
 
 @app.route('/reminders', methods=['POST'])
 def add_reminder():
-	return jsonify({'id': 1,'item': 'dr visit', 'description': 'go for checktup', 
-		'date': '23-03-2019'}) 
+	apikey = request.headers.get("apikey")
+	user = db.session.query(User).filter_by(apikey=apikey).one()
+	req = request.get_json()
+	item = req['item']
+	description = req['description']
+	due_date =  datetime.strptime(req['due_date'], '%Y-%m-%d %H:%M:%S')
+	reminder = Reminder(item = item, description = description, 
+		due_date = due_date)
+	user.reminders.append(reminder)
+	db.session.add(reminder)
+	db.session.commit()
+	return Response(response="reminder was added", status=200) 
 
 @app.route('/reminders/<id>', methods=['PUT'])
 def update_reminder(id):
@@ -64,7 +79,3 @@ def update_reminder(id):
 @app.route('/reminders/<id>', methods=['DELETE'])
 def delete_reminder(id):
 	return jsonify({'reminder_id': id, 'method': 'delete'}) 
-'''
-if __name__ == '__main__':
-  app.run(debug=True, host = "0.0.0.0", port=int(4000))
-'''
