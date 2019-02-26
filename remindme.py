@@ -9,10 +9,6 @@ from remindme import app, db
 from functools import wraps
 
 
-class CustomException(Exception):
-    pass
-
-
 def validate_request(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
@@ -37,7 +33,7 @@ def validate_auth(func):
     return decorated_function
 
 
-def get_user():
+def _get_user():
     apikey = request.headers.get("apikey")
     user = db.session.query(User).filter_by(apikey=apikey).one()
     return user
@@ -58,7 +54,7 @@ def get_users():
 @validate_auth
 def get_user(id):
     user_obj = User.query.get(id)
-    return jsonify({'username': user_obj.username, 'apikey': user_obj.apikey,'email': user_obj.email})
+    return jsonify({'username': user_obj.username, 'apikey': user_obj.apikey, 'email': user_obj.email})
 
 
 @app.route('/users', methods=['POST'])
@@ -83,6 +79,7 @@ def add_user():
 def delete_users(id):
     user = User.query.get(id)
     db.session.delete(user)
+    db.session.commit()
     return Response(response="user was deleted", status=200)
 
 
@@ -110,7 +107,7 @@ def get_reminder(id):
 @validate_auth
 @validate_request
 def add_reminder():
-    user = get_user()
+    user = _get_user()
     req = request.get_json()
     item = req['item']
     description = req['description']
@@ -127,7 +124,7 @@ def add_reminder():
 @validate_auth
 @validate_request
 def update_reminder(id):
-    user = get_user()
+    user = _get_user()
     req = request.get_json()
 
     reminder = Reminder.query.get(id)
@@ -146,4 +143,5 @@ def update_reminder(id):
 def delete_reminder(id):
     reminder = Reminder.query.get(id)
     db.session.delete(reminder)
+    db.session.commit()
     return Response(response="reminder was deleted", status=200)
