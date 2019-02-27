@@ -2,7 +2,7 @@ Remindme is a simply flask app that you can use to remind yourself of anything v
 
 | HTTP Verb   |      URL Endpoint      |  Action |
 |:----------|:-------------|:------|
-| POST | /users | register user with params username, password, email. you will receive an API Key you use to create and delete your reminderrs. |
+| POST | /users | register user with params username, password, email. you will receive an API Key you use to create and delete your reminders. |
 | POST | /reminders   |  add reminder |
 | GET | /reminders |    get reminders |
 | GET | /reminders/<ID> |    get reminder with ID |
